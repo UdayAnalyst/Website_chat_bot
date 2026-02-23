@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Travelers RAG Demo Bot (Student)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
+    .row { display: flex; gap: 12px; }
+    .row > * { flex: 1; }
+    #chat { height: 420px; overflow: auto; border: 1px solid #eee; padding: 12px; border-radius: 12px; background: #fafafa; }
+    .msg { margin: 10px 0; }
+    .me { font-weight: 700; }
+    .bot { font-weight: 700; }
+    .small { font-size: 12px; color: #666; }
+    button { border: 1px solid #ddd; background: white; padding: 10px 12px; border-radius: 10px; cursor: pointer; }
+    button:hover { background: #f6f6f6; }
+    input[type=text] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; }
+    select { padding: 10px; border-radius: 10px; border: 1px solid #ddd; }
+    a { color: #0b63ce; }
+    .pill { display: inline-block; border: 1px solid #ddd; border-radius: 999px; padding: 6px 10px; margin: 4px 6px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Travelers RAG Demo Bot (Student Project)</h2>
+    <p class="small">This is a class demo. It answers using public pages and cannot access accounts.</p>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="small">User type</div>
+          <select id="userType">
+            <option value="personal">Personal</option>
+            <option value="business">Business</option>
+          </select>
+        </div>
+        <div>
+          <div class="small">Quick actions</div>
+          <div>
+            <button onclick="quick('How do I pay my bill?')">Pay your bill</button>
+            <button onclick="quick('How do I file a claim?')">File a claim</button>
+            <button onclick="quick('How do I check claim status?')">Check claim status</button>
+            <button onclick="quick('How do I contact support?')">Contact us</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+      <div id="chat"></div>
+
+      <div style="height:12px;"></div>
+      <div class="row">
+        <input id="msg" type="text" placeholder="Ask something (e.g., 'Where do I upload claim documents?')" />
+        <button onclick="send()">Send</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const API = "/chat";
+
+function addLine(who, text, extraHtml="") {
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "msg";
+  div.innerHTML = `<div class="${who === 'You' ? 'me' : 'bot'}">${who}</div>
+                   <div>${text.replace(/\n/g,'<br/>')}</div>
+                   ${extraHtml}`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function quick(text) {
+  document.getElementById("msg").value = text;
+  send();
+}
+
+async function send() {
+  const input = document.getElementById("msg");
+  const userType = document.getElementById("userType").value;
+  const text = input.value.trim();
+  if (!text) return;
+
+  addLine("You", text);
+  input.value = "";
+
+  const res = await fetch(API, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({message: text, user_type: userType})
+  });
+
+  const data = await res.json();
+
+  let citesHtml = "";
+  if (data.citations && data.citations.length) {
+    const links = data.citations.map(c => `<a href="${c.url}" target="_blank">Open official page</a>`).join(" • ");
+    citesHtml = `<div style="margin-top:8px;" class="small">
+                  <span class="pill">intent: ${data.intent}</span>
+                  ${data.pii_redacted ? '<span class="pill">PII redacted</span>' : ''}
+                  <div style="margin-top:6px;">${links}</div>
+                 </div>`;
+  }
+
+  addLine("Bot", data.answer, citesHtml);
+}
+
+document.getElementById("msg").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") send();
+});
+</script>
+</body>
+</html>
