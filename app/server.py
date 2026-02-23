@@ -4,10 +4,10 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from config import settings
-from intents import detect_intent
-from guardrails import redact_pii, safety_preamble, account_boundary
-from rag import load_chunks, load_index, retrieve, build_prompts, generate_with_groq, format_citations
+from app.config import settings
+from app.intents import detect_intent
+from app.guardrails import redact_pii, safety_preamble, account_boundary
+from app.rag import load_chunks, load_index, retrieve, build_prompts, generate_with_groq, format_citations
 
 app = FastAPI(title="Travelers RAG Demo Bot (Groq + FAISS)")
 
