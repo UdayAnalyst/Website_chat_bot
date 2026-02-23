@@ -19,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve UI
 app.mount("/web", StaticFiles(directory="web"), name="web")
 
 @app.get("/")
@@ -53,15 +52,11 @@ def startup():
 def chat(req: ChatRequest):
     cleaned, changed = redact_pii(req.message)
     intent = detect_intent(cleaned)
-
     sources = retrieve(index, chunks, cleaned, top_k=settings.TOP_K)
-
     sys_prompt, user_prompt = build_prompts(cleaned, sources, req.user_type, intent)
     answer = generate_with_groq(sys_prompt, user_prompt)
-
     answer = safety_preamble() + account_boundary() + answer
     citations = format_citations(sources, max_cites=3)
-
     return ChatResponse(
         intent=intent,
         answer=answer,
