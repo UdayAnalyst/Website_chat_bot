@@ -2,7 +2,7 @@ import json
 import numpy as np
 import faiss
 from typing import List, Dict, Tuple
-from .config import settings
+from config import settings
 
 _sbert_model = None
 
