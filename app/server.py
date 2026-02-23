@@ -47,6 +47,8 @@ def startup():
     global chunks, index
     chunks = load_chunks(settings.CHUNKS_PATH)
     index = load_index(settings.FAISS_PATH)
+    from app.rag import _get_sbert
+    _get_sbert()
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
